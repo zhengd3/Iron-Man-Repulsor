@@ -1,0 +1,4 @@
+syntax: glob
+mainRims/.directory
+.directory
+docs/
