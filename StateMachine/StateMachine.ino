@@ -4,10 +4,6 @@
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(12, PIN, NEO_GRB + NEO_KHZ800);
 
-
-
-
-
 //Stepper Motor
 #include <Stepper.h>
 #define STEPS_PER_MOTOR_REVOLUTION 32
@@ -19,10 +15,6 @@ int  Steps2Take;
 int button = 7;
 int buttonValue;
 
-
-
-
-
 //Adafruit Wave Shield//
 #include <FatReader.h>
 #include <SdReader.h>
@@ -31,7 +23,7 @@ int buttonValue;
 #include "WaveHC.h"
 
 #define REPULSOR "Sound.WAV"
-#define MISSILE "Missile.WAV"
+#define MISSILE "LaserM.WAV"
 
 SdReader card;    // This object holds the information for the card
 FatVolume vol;    // This holds the information for the partition on the card
@@ -47,18 +39,10 @@ WaveHC wave;      // This is the only wave (audio) object, since we will only pl
 void lsR(FatReader &d);
 void play(FatReader &dir);
 
-
-
-
-
 //Flex Sensor//
 const int flexSensor = 1;
 int sensor = 0;
 const int threshold = 40;
-
-
-
-
 
 //State Machine//
 const int S_Idle = 2;
@@ -77,12 +61,12 @@ static int counter = 0;
 void setup()
 {
   Serial.begin(9600);       // use the serial port
-  
+
   pinMode(button, INPUT);   //set pushbutton as an input
-        
-  strip.begin();            
+
+  strip.begin();
   strip.setBrightness(10);  //Set Neopixel Ring's Brightness
-  strip.show();           
+  strip.show();
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
   //                                     Audio Setup Code                                             //
@@ -97,7 +81,7 @@ void setup()
   pinMode(3, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
-  
+
   //  if (!card.init(true)) { //play with 4 MHz spi if 8MHz isn't working for you
   if (!card.init()) {         //play with 8 MHz spi (default faster!)
     putstring_nl("Card init. failed!");  // Something went wrong, lets print out why
@@ -142,7 +126,7 @@ void setup()
   lsR(root);
   //////////////////////////////////////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////
-  
+
   while (1)
   {
     SM_States = Next_States;
@@ -153,7 +137,7 @@ void setup()
 
 void loop()
 {
- 
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,37 +151,39 @@ void Funct_States()
   switch (SM_States)
   {
     case S_Idle:
-      if (sensor < threshold)
+      if (sensor < threshold) //if flex sensor is bent
         Next_States = S_Bend;
       else
         Next_States = S_Idle;
       break;
 
     case S_Bend:
-      if (sensor >= threshold)
+      if (sensor >= threshold) //if flex sensor is not bent
         Next_States = S_Fire;
-      else if (sensor < threshold && buttonValue == HIGH)
+      else if (sensor < threshold && buttonValue == HIGH) //if flex sensor is bent and button is pressed
         Next_States = S_Missile;
       else
         Next_States = S_Bend;
       break;
 
     case S_Fire:
-      if (sensor < threshold)
+      if (sensor < threshold) //if flex sensor is not bent
         Next_States = S_Bend;
       else
         Next_States = S_Recharge;
       break;
 
     case S_Recharge:
-      if (sensor < threshold)
+      if (sensor < threshold) //if flex sensor is bent
         Next_States = S_Bend;
       else
+      {
         Next_States = S_Recharge;
-      if (counter == 10)
-        Next_States = S_Idle;
+        if (counter == 10)  //while at recharge state, a counter is incremented by 1, if counter hits 10, move to idle state.
+          Next_States = S_Idle;
+      }
       break;
-    case S_Missile:
+    case S_Missile: 
       Next_States = S_Bend;
       break;
   }
@@ -250,7 +236,7 @@ void Funct_States()
       }
 
       playcomplete(REPULSOR);  //Plays Sound.WAV file
-      
+
       // fade out from max to min in increments of 5 points:
       for (int fadeValue = 255 ; fadeValue >= 0; fadeValue -= 5)
       {
@@ -413,8 +399,8 @@ void lsR(FatReader &d)
 {
   int8_t r;                     // indicates the level of recursion
 
-  while ((r = d.readDir(dirBuf)) > 0) 
-  {     // read the next file in the directory
+  while ((r = d.readDir(dirBuf)) > 0)
+  { // read the next file in the directory
     // skip subdirs . and ..
     if (dirBuf.name[0] == '.')
       continue;
@@ -424,8 +410,8 @@ void lsR(FatReader &d)
     printName(dirBuf);          // print the name of the file we just found
     Serial.println();           // and a new line
 
-    if (DIR_IS_SUBDIR(dirBuf)) 
-    {   // we will recurse on any direcory
+    if (DIR_IS_SUBDIR(dirBuf))
+    { // we will recurse on any direcory
       FatReader s;                 // make a new directory object to hold information
       dirLevel += 2;               // indent 2 spaces for future prints
       if (s.open(vol, dirBuf))
@@ -441,8 +427,8 @@ void lsR(FatReader &d)
 void play(FatReader &dir)
 {
   FatReader file;
-  while (dir.readDir(dirBuf) > 0) 
-  {    // Read every file in the directory one at a time
+  while (dir.readDir(dirBuf) > 0)
+  { // Read every file in the directory one at a time
     // skip . and .. directories
     if (dirBuf.name[0] == '.')
       continue;
@@ -452,14 +438,14 @@ void play(FatReader &dir)
     for (uint8_t i = 0; i < dirLevel; i++)
       Serial.print(' ');       // this is for prettyprinting, put spaces in front
 
-    if (!file.open(vol, dirBuf)) 
-    {       // open the file in the directory
+    if (!file.open(vol, dirBuf))
+    { // open the file in the directory
       Serial.println("file.open failed");  // something went wrong :(
       while (1);                           // halt
     }
 
-    if (file.isDir()) 
-    {                    // check if we opened a new directory
+    if (file.isDir())
+    { // check if we opened a new directory
       putstring("Subdir: ");
       printName(dirBuf);
       dirLevel += 2;                       // add more spaces
@@ -470,16 +456,16 @@ void play(FatReader &dir)
     else {
       // Aha! we found a file that isnt a directory
       putstring("Playing "); printName(dirBuf);       // print it out
-      if (!wave.create(file)) 
-      {            // Figure out, is it a WAV proper?
+      if (!wave.create(file))
+      { // Figure out, is it a WAV proper?
         putstring(" Not a valid WAV");     // ok skip it
-      } else 
+      } else
       {
         Serial.println();                  // Hooray it IS a WAV proper!
         wave.play();                       // make some noise!
 
-        while (wave.isplaying) 
-        {           // playing occurs in interrupts, so we print dots in realtime
+        while (wave.isplaying)
+        { // playing occurs in interrupts, so we print dots in realtime
           putstring(".");
           delay(100);
         }
@@ -490,33 +476,33 @@ void play(FatReader &dir)
   }
 }
 
-void playcomplete(char *name) 
+void playcomplete(char *name)
 {
   // call our helper to find and play this name
   playfile(name);
-  while (wave.isplaying) 
+  while (wave.isplaying)
   {
-  // do nothing while its playing
+    // do nothing while its playing
   }
   // now its done playing
 }
-void playfile(char *name) 
+void playfile(char *name)
 {
   // see if the wave object is currently doing something
   if (wave.isplaying) {// already playing something, so stop it!
     wave.stop(); // stop it
   }
   // look in the root directory and open the file
-  if (!file.open(root, name)) 
+  if (!file.open(root, name))
   {
     putstring("Couldn't open file "); Serial.print(name); return;
   }
   // OK read the file and turn it into a wave object
-  if (!wave.create(file)) 
+  if (!wave.create(file))
   {
     putstring_nl("Not a valid WAV"); return;
   }
-  
+
   // ok time to play! start playback
   wave.play();
 }
