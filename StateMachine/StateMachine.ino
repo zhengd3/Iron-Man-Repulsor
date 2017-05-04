@@ -9,7 +9,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(12, PIN, NEO_GRB + NEO_KHZ800);
 #define STEPS_PER_MOTOR_REVOLUTION 32
 #define STEPS_PER_OUTPUT_REVOLUTION 32 * 64  //2048
 
-Stepper small_stepper(STEPS_PER_MOTOR_REVOLUTION, 8, 12, 11, 13);  //Stepper Motor Pins[p'
+Stepper small_stepper(STEPS_PER_MOTOR_REVOLUTION, 8, 12, 11, 13);  //Stepper Motor Pins
 
 int  Steps2Take;
 int button = 7;
@@ -22,7 +22,7 @@ int buttonValue;
 #include "WaveUtil.h"
 #include "WaveHC.h"
 
-#define REPULSOR "Sound.WAV"
+#define REPULSOR "Repulsor.WAV"
 #define MISSILE "LaserM.WAV"
 
 SdReader card;    // This object holds the information for the card
@@ -65,7 +65,7 @@ void setup()
   pinMode(button, INPUT);   //set pushbutton as an input
 
   strip.begin();
-  strip.setBrightness(10);  //Set Neopixel Ring's Brightness
+  strip.setBrightness(5);  //Set Neopixel Ring's Brightness
   strip.show();
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,7 +235,7 @@ void Funct_States()
         delay(10);
       }
 
-      playcomplete(REPULSOR);  //Plays Sound.WAV file
+      playcomplete(REPULSOR);  //Plays Repulsor.WAV file
 
       // fade out from max to min in increments of 5 points:
       for (int fadeValue = 255 ; fadeValue >= 0; fadeValue -= 5)
