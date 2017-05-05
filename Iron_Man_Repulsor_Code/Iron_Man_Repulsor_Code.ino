@@ -65,7 +65,7 @@ void setup()
   pinMode(button, INPUT);   //set pushbutton as an input
 
   strip.begin();
-  strip.setBrightness(5);  //Set Neopixel Ring's Brightness
+  strip.setBrightness(64);  //Set Neopixel Ring's Brightness
   strip.show();
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
